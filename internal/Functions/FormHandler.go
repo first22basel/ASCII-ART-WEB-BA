@@ -14,24 +14,62 @@ type PageData struct {
 }
 
 func FormHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if MainPage.html is existed
+	err := EnsureFile("../internal/frontend/MainPage.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/MainPage.html")
+	if err != nil {
+		err := EnsureFile("../internal/frontend/500.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/500.html")
+		if err != nil {
+			http.Error(w, "500 Server Error - Failed to recover 500.html", http.StatusNotFound)
+			return
+		}
+	}
+
+	// Check if there is HTTP post request
 	if r.Method == http.MethodPost {
+		// Parse data from HTTP post request
 		r.ParseForm()
 		input := r.FormValue("userinput")
 		inputStyle := r.FormValue("banner")
 		fontSize := r.FormValue("fontsize")
 		fontColor := r.FormValue("color")
 
-		fontMap := LoadFont(inputStyle)
-		asciiResult, err := PrintAscii(input, fontMap)
+		// Map the banner file inside an array "fontMap"
+		fontMap, err := LoadBanner(inputStyle)
 		if err != nil {
-			http.Error(w, "HTTP Status 500 - Internal Server Error", http.StatusInternalServerError)
+			// Check if 500.html is existed
+			err := EnsureFile("../internal/frontend/500.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/500.html")
+			if err != nil {
+				http.Error(w, "500 - Internal Server Error", http.StatusNotFound)
+				return
+			}
+			http.ServeFile(w, r, "../internal/frontend/500.html")
 			return
 		}
 
-		tmpl, err := template.ParseFiles("../internal/frontend/MainPage.html")
+		// Map user's inputs with fontMap
+		asciiResult, err := PrintAscii(input, fontMap)
 		if err != nil {
-			http.Error(w, "Template not found", http.StatusInternalServerError)
+			// Check if 500.html is existed
+			err := EnsureFile("../internal/frontend/500.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/500.html")
+			if err != nil {
+				http.Error(w, "500 Server Error - Failed to recover 500.html", http.StatusNotFound)
+				return
+			}
+			http.ServeFile(w, r, "../internal/frontend/500.html")
 			return
+		}
+
+		// Load MainPage.html to the website
+		MainPageTemp, err := template.ParseFiles("../internal/frontend/MainPage.html")
+		if err != nil {
+			err := EnsureFile("../internal/frontend/MainPage.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/MainPage.html")
+			if err != nil {
+				err := EnsureFile("../internal/frontend/500.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/500.html")
+				if err != nil {
+					http.Error(w, "500 Server Error - Failed to recover 500.html", http.StatusNotFound)
+					return
+				}
+			}
 		}
 
 		data := PageData{
@@ -41,20 +79,27 @@ func FormHandler(w http.ResponseWriter, r *http.Request) {
 			FontSize:  fontSize,
 			FontColor: fontColor,
 		}
-		tmpl.Execute(w, data)
+		MainPageTemp.Execute(w, data)
 		return
 	}
 
-	// Handle initial GET request with default values
+	// Set default values for size, color, and banner
 	data := PageData{
 		FontSize:  "16px",
 		FontColor: "#00ffcc",
 		Banner:    "standard",
 	}
-	tmpl, err := template.ParseFiles("../internal/frontend/MainPage.html")
+
+	MainPageTemp, err := template.ParseFiles("../internal/frontend/MainPage.html")
 	if err != nil {
-		http.Error(w, "Template not found", http.StatusInternalServerError)
-		return
+		err := EnsureFile("../internal/frontend/MainPage.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/MainPage.html")
+		if err != nil {
+			err := EnsureFile("../internal/frontend/500.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/500.html")
+			if err != nil {
+				http.Error(w, "500 Server Error - Failed to recover 500.html", http.StatusNotFound)
+				return
+			}
+		}
 	}
-	tmpl.Execute(w, data)
+	MainPageTemp.Execute(w, data)
 }

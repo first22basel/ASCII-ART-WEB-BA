@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func PrintAscii(input string, fontMap map[rune][]string) (string, error) {
+func PrintAscii(input string, bannerMap map[rune][]string) (string, error) {
 	var result strings.Builder
 
 	lines := strings.Split(input, "\n")
@@ -18,9 +18,9 @@ func PrintAscii(input string, fontMap map[rune][]string) (string, error) {
 		for row := 0; row < 8; row++ {
 			for _, ch := range line {
 				if ch == '\r' {
-					continue // Ignore carriage returns
+					continue // To handle different operating systems
 				}
-				if art, ok := fontMap[ch]; ok {
+				if art, ok := bannerMap[ch]; ok {
 					result.WriteString(art[row])
 				} else {
 					return "", errors.New("unsupported character: '" + string(ch) + "'")
