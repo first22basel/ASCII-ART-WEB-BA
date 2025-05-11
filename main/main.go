@@ -18,7 +18,7 @@ func main() {
 		if err != nil {
 			err := BA.EnsureFile("../internal/frontend/500.html", "https://raw.githubusercontent.com/first22basel/ASCII-ART-WEB-BA/main/internal/frontend/500.html")
 			if err != nil {
-				http.Error(w, "500 - Internal Server Error", http.StatusNotFound)
+				http.Error(w, "500 - Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 			http.ServeFile(w, r, "../internal/frontend/500.html")
